@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">PaintLink</string>
+    <string-array name="request_limiting_options">
+        <!--This array can be edited. All options must start with (number ) or with "Unlimited"-->
+        <item>Unlimited requests per second</item>
+        <item>50 Requests per second</item>
+        <item>100 Requests per second</item>
+        <item>200 Requests per second</item>
+    </string-array>
+    <string name="calibration_instructions">Point the phone at the side of the canvas indicated below and press \"Start\". Wait for the action to end before moving on to the next side.</string>
+    <string-array name="calibration_sides">
+        <item>Current Side: Left</item>
+        <item>Current Side: Right</item>
+        <item>Current Side: Top</item>
+        <item>Current Side: Bottom</item>
+    </string-array>
+    <string name="broadcast_login_explanation">Looking for server…\nMake sure the server is active and on the same network as you</string>
+    <string name="broadcast_login_success">Found server!</string>
+    <string name="broadcast_login_button_skip">Use manual login instead</string>
+    <string name="login_button_finish">Continue to calibration</string>
+    <string name="manual_login_instructions">Enter the server\'s address:</string>
+    <string name="manual_login_ip_hint">IP: 127.0.0.1</string>
+    <string name="manual_login_port_hint">Port: 8080</string>
+    <string name="login_error_title">Invalid Address</string>
+    <string name="login_error_message">You can input a new address or try to broadcast on port %d.</string>
+    <string name="login_error_retry_button">New Address</string>
+    <string name="login_error_broadcast_button">Broadcast</string>
+</resources>
