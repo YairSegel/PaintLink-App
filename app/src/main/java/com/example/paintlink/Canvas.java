@@ -11,6 +11,13 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.DatagramChannel;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.Signature;
+import java.security.SignatureException;
+import java.util.Arrays;
 
 public class Canvas {
     private final static Canvas INSTANCE = new Canvas();
@@ -28,7 +35,11 @@ public class Canvas {
     public boolean active = false;
     private DatagramChannel client;
     private InetSocketAddress serverAddress;
-    private final ByteBuffer pointBuffer = ByteBuffer.allocate(16);
+    private final ByteBuffer pointBuffer = ByteBuffer.allocate(500); // 72 is max signature length + 20 for info
+
+    private KeyPair keyPair;
+    private Signature signer;
+    private final char splitChar = '`';
 
 
     private Canvas() {
@@ -38,6 +49,27 @@ public class Canvas {
             client.bind(null);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        try {
+            keyPair = KeyPairGenerator.getInstance("EC").generateKeyPair();
+            signer = Signature.getInstance("SHA256withECDSA");
+            signer.initSign(keyPair.getPrivate());
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public byte[] getPublicKey() {
+        return keyPair.getPublic().getEncoded();
+    }
+
+    public byte[] generateSignature(byte[] message) {
+        try {
+            signer.update(message);
+            return signer.sign();
+        } catch (SignatureException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -111,6 +143,12 @@ public class Canvas {
         pointBuffer.putInt(8, color);
         pointBuffer.putInt(12, pressed ? 1 : 0);
 //        Log.d("Future UDP Request", pressed + " of " + color + " in relative point ???");
+        byte[] signature = generateSignature(Arrays.copyOfRange(pointBuffer.array(), 0, 16));
+//        pointBuffer.put(signature, 16, signature.length-1);
+        pointBuffer.putInt(16, signature.length);
+        for (int i=0; i<signature.length; i++)
+            pointBuffer.put(i + 20, signature[i]);
+//        pointBuffer.put(signature);  // doesn't work!
     }
 
     public void setRequestsPerSecond(int newRequestsPerSecond) {

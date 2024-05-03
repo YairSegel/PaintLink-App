@@ -16,8 +16,8 @@
     </string-array>
     <string name="broadcast_login_explanation">Looking for server…\nMake sure the server is active and on the same network as you</string>
     <string name="broadcast_login_success">Found server!</string>
-    <string name="broadcast_login_button_skip">Use manual login instead</string>
-    <string name="login_button_finish">Continue to calibration</string>
+    <string name="broadcast_login_button_skip">Use manual login</string>
+    <string name="login_button_finish">Continue</string>
     <string name="manual_login_instructions">Enter the server\'s address:</string>
     <string name="manual_login_ip_hint">IP: 127.0.0.1</string>
     <string name="manual_login_port_hint">Port: 8080</string>

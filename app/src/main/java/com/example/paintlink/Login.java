@@ -3,6 +3,7 @@ package com.example.paintlink;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.media.CamcorderProfile;
 import android.os.Bundle;
 import android.os.NetworkOnMainThreadException;
 import android.util.Log;
@@ -27,14 +28,18 @@ public class Login extends Activity {
     BroadcastThread broadcastThread;
     boolean broadcastSuccessful = false;
     int timeout = 1000;
-    byte[] bytes = new byte[1024];
+    byte[] requestBuffer;
     DatagramPacket request;
-    DatagramPacket response = new DatagramPacket(bytes, 1024);
+    DatagramPacket response = new DatagramPacket(new byte[1024], 1024);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        startBroadcast();
+
+        // Preparing buffer
+        requestBuffer = Canvas.getInstance().getPublicKey();
+
+        startBroadcast(new InetSocketAddress("255.255.255.255", serverPort));
     }
 
     public void completeLogin(SocketAddress serverAddress) {
@@ -52,7 +57,7 @@ public class Login extends Activity {
         if (manualErrorDialog == null)
             manualErrorDialog = new AlertDialog.Builder(Login.this)
                 .setTitle(R.string.login_error_title)
-                .setPositiveButton(R.string.login_error_broadcast_button, (dialogInterface, i) -> startBroadcast())
+                .setPositiveButton(R.string.login_error_broadcast_button, (dialogInterface, i) -> startBroadcast(new InetSocketAddress("255.255.255.255", serverPort)))
                 .setNegativeButton(R.string.login_error_retry_button, null);
 
         button = findViewById(R.id.loginButton);
@@ -62,21 +67,20 @@ public class Login extends Activity {
         button.setOnClickListener(v -> {
             try {
                 serverPort = Integer.parseInt(portInput.getText().toString());
-                if (ipInput.getText().toString().equals(""))
+                if (ipInput.getText().toString().isEmpty())
                     throw new NetworkOnMainThreadException();
-                completeLogin(new InetSocketAddress(ipInput.getText().toString(), serverPort));
             } catch (NumberFormatException | NetworkOnMainThreadException e) {
                 manualErrorDialog.setMessage(String.format(getResources().getText(R.string.login_error_message).toString(), serverPort)).show();
+                return;
             }
+            startBroadcast(new InetSocketAddress(ipInput.getText().toString(), serverPort));
         });
     }
 
-    public void startBroadcast() {
+    public void startBroadcast(InetSocketAddress address) {
         setContentView(R.layout.broadcast_login);
 
-        // todo: prep request properly
-        ByteBuffer.wrap(bytes).put("Where are you?".getBytes());
-        request = new DatagramPacket(bytes, 1024, new InetSocketAddress("255.255.255.255", serverPort));
+        request = new DatagramPacket(requestBuffer, requestBuffer.length, address);
 
         broadcastThread = new BroadcastThread();
         broadcastThread.start();
