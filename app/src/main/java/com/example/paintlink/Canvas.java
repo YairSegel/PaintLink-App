@@ -4,10 +4,15 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
 import java.io.IOException;
+import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.DatagramChannel;
@@ -19,7 +24,7 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.util.Arrays;
 
-public class Canvas {
+public class Canvas {  // TODO: refactor and make sure the app doesn't crash when the screen rotates (or disable rotation so that doesn't happen)
     private final static Canvas INSTANCE = new Canvas();
 
     // Private constructor suppresses generation of a (public) default constructor
@@ -44,12 +49,6 @@ public class Canvas {
 
     private Canvas() {
         pointBuffer.order(ByteOrder.BIG_ENDIAN);
-        try {
-            client = DatagramChannel.open();
-            client.bind(null);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         try {
             keyPair = KeyPairGenerator.getInstance("EC").generateKeyPair();
@@ -73,31 +72,36 @@ public class Canvas {
         }
     }
 
-    private final Thread UDPThread = new Thread(() -> {
-        while (!Thread.interrupted()) {
-            try {
-                if (requestsPerSecond != 0) Thread.sleep(1000 / requestsPerSecond);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            if (!(active && changed)) continue;
-            sendRequest();
-        }
-        try {
-            client.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    });
+//    private final Thread UDPThread = new Thread(() -> {
+//        while (!Thread.interrupted()) {
+//            try {
+//                if (requestsPerSecond != 0) Thread.sleep(1000 / requestsPerSecond);
+//            } catch (InterruptedException e) {
+//                Thread.currentThread().interrupt();
+//            }
+//            if (!(active && changed)) continue;
+//            sendRequest();
+//        }
+//        try {
+//            client.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    });
+
+    private CommunicationThread UDPThread;
 
     public void startCommunication() {
 //        if (serverAddress == null) return;
-        if (!UDPThread.isAlive()) UDPThread.start();
-        active = true;
+//        if (!UDPThread.isAlive()) UDPThread.start();
+//        active = true;
+        UDPThread = new CommunicationThread();
+        UDPThread.start();
     }
 
     public void pauseCommunication() {
-        active = false;
+//        active = false;
+        endCommunication();
     }
 
     public void endCommunication() {
@@ -159,5 +163,30 @@ public class Canvas {
         // Norm the value between 0 and 1 relative to range[min, max]
         // values over the edge will be snapped to it
         return (float) min(1, max(0, value - minimum) / (maximum - minimum));
+    }
+
+    private class CommunicationThread extends Thread {
+        public void run() {
+            try {
+                client = DatagramChannel.open();
+                client.bind(null);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            while (!Thread.interrupted()) {
+                try {
+                    if (requestsPerSecond != 0) Thread.sleep(1000 / requestsPerSecond);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                if (!changed) continue;
+                sendRequest();
+            }
+            try {
+                client.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
