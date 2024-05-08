@@ -14,6 +14,8 @@
         <item>Current Side: Top</item>
         <item>Current Side: Bottom</item>
     </string-array>
+    <string name="calibration_start">Start</string>
+    <string name="calibration_wait">In process, continue</string>
     <string name="broadcast_login_explanation">Looking for server…\nMake sure the server is active and on the same network as you</string>
     <string name="broadcast_login_success">Found server!</string>
     <string name="broadcast_login_button_skip">Use manual login</string>
@@ -25,4 +27,8 @@
     <string name="login_error_message">You can input a new address or try to broadcast on port %d.</string>
     <string name="login_error_retry_button">New Address</string>
     <string name="login_error_broadcast_button">Broadcast</string>
+
+    <string name="recalibrate_dialog_title">Recalibrate / Relog</string>
+    <string name="recalibrate_dialog_recalibrate_button">Recalibrate Sensors</string>
+    <string name="recalibrate_dialog_relog_button">Relog</string>
 </resources>

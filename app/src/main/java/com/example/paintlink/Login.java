@@ -3,7 +3,6 @@ package com.example.paintlink;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.media.CamcorderProfile;
 import android.os.Bundle;
 import android.os.NetworkOnMainThreadException;
 import android.util.Log;
@@ -19,7 +18,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.nio.ByteBuffer;
 
 public class Login extends Activity {
     private Button button;
@@ -27,7 +25,6 @@ public class Login extends Activity {
     int serverPort = 12345;  // Default server port, unless unsuccessful
     BroadcastThread broadcastThread;
     boolean broadcastSuccessful = false;
-    int timeout = 1000;
     byte[] requestBuffer;
     DatagramPacket request;
     DatagramPacket response = new DatagramPacket(new byte[1024], 1024);
@@ -36,18 +33,14 @@ public class Login extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Preparing buffer
         requestBuffer = Canvas.getInstance().getPublicKey();
-
         startBroadcast(new InetSocketAddress("255.255.255.255", serverPort));
     }
 
     public void completeLogin(SocketAddress serverAddress) {
         Canvas.getInstance().setServerAddress(serverAddress);
-        // start Calibration activity
-        Intent i = new Intent(Login.this, Calibration.class);
-        startActivity(i);
-        // finish this
+        Log.d("Activity Change", "Login -> Calibration");
+        startActivity(new Intent(Login.this, Calibration.class));
         finish();
     }
 
@@ -56,9 +49,9 @@ public class Login extends Activity {
 
         if (manualErrorDialog == null)
             manualErrorDialog = new AlertDialog.Builder(Login.this)
-                .setTitle(R.string.login_error_title)
-                .setPositiveButton(R.string.login_error_broadcast_button, (dialogInterface, i) -> startBroadcast(new InetSocketAddress("255.255.255.255", serverPort)))
-                .setNegativeButton(R.string.login_error_retry_button, null);
+                    .setTitle(R.string.login_error_title)
+                    .setPositiveButton(R.string.login_error_broadcast_button, (dialogInterface, i) -> startBroadcast(new InetSocketAddress("255.255.255.255", serverPort)))
+                    .setNegativeButton(R.string.login_error_retry_button, null);
 
         button = findViewById(R.id.loginButton);
         EditText ipInput = findViewById(R.id.manualIpInput);
@@ -87,9 +80,8 @@ public class Login extends Activity {
 
         button = findViewById(R.id.loginButton);
         button.setOnClickListener(v -> {
-            if (broadcastSuccessful) {
-                completeLogin(response.getSocketAddress());
-            } else {
+            if (broadcastSuccessful) completeLogin(response.getSocketAddress());
+            else {
                 broadcastThread.interrupt();
                 startManual();
             }
@@ -97,6 +89,8 @@ public class Login extends Activity {
     }
 
     private class BroadcastThread extends Thread {
+        int timeout = 1000;
+
         public void run() {
             DatagramSocket client;
             try {
@@ -109,17 +103,17 @@ public class Login extends Activity {
             while (!Thread.interrupted()) {
                 try {
                     client.send(request);
-                    Log.d("DHCP", "Sent broadcast discover packet, waiting to get response for " + timeout + "ms...");
+                    Log.d("Broadcast", "Sent broadcast discover packet, waiting to get response for " + timeout + "ms...");
 
                     client.receive(response);
 //                response.setPort(1);  // emulates a response
                     // todo: assert response is valid else continue
                     broadcastSuccessful = true;
                     runOnUiThread(this::changeView);
-                    Log.d("DHCP", "Success! Received packet from server at " + response.getSocketAddress());
+                    Log.d("Broadcast", "Success! Received packet from server at " + response.getSocketAddress());
                     break;
                 } catch (SocketTimeoutException e) {
-                    Log.d("DHCP", "Didn't get response, retrying...");
+                    Log.d("Broadcast", "Didn't get response, retrying...");
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

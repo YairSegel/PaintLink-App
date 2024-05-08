@@ -40,7 +40,7 @@ public class Calibration extends Activity {
         button = findViewById(R.id.calibrationButton);
         button.setOnClickListener(v -> {
             inProcess = true;
-            button.setText("In process, continue");
+            button.setText(R.string.calibration_wait);
         });
         next_edge();
     }
@@ -49,15 +49,9 @@ public class Calibration extends Activity {
         // Processing lrtb
         for (int i = 0; i < lrtb.length; i++) lrtb[i] /= lrtb_accuracy[i];
         Canvas.getInstance().setEdges(lrtb[0], lrtb[1], lrtb[2], lrtb[3]);
-        // start Paint activity
-        Intent i = new Intent(Calibration.this, SensorPaint.class);
-//        source activity:
-//        i.putExtra("Canvas Position", lrtb);
-//        recipient activity:
-//        float[] lrtb = getIntent().getFloatArrayExtra("Canvas Position");
 
-        startActivity(i);
-        // finish this
+        Log.d("Activity Change", "Calibration -> SensorPaint");
+        startActivity(new Intent(Calibration.this, SensorPaint.class));
         finish();
     }
 
@@ -69,7 +63,7 @@ public class Calibration extends Activity {
             return;
         }
         text.setText(possibleTexts[current]);
-        button.setText("Start");
+        button.setText(R.string.calibration_start);
     }
 
     @Override
