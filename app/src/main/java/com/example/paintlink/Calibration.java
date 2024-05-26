@@ -14,7 +14,6 @@ import android.widget.TextView;
 
 public class Calibration extends Activity {
     private SensorManager sensorManager;
-    private Sensor rotationVectorSensor;
 
     private final float[] lrtb = {0, 0, 0, 0}, lrtb_accuracy = {0, 0, 0, 0};
     private int current = -1;
@@ -32,7 +31,6 @@ public class Calibration extends Activity {
 
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        rotationVectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 
         text = findViewById(R.id.calibrationText);
         possibleTexts = getResources().getStringArray(R.array.calibration_sides);
@@ -69,7 +67,7 @@ public class Calibration extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        sensorManager.registerListener(sensorEventListener, rotationVectorSensor, SensorManager.SENSOR_DELAY_UI);
+        sensorManager.registerListener(sensorEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR), SensorManager.SENSOR_DELAY_UI);
     }
 
     @Override

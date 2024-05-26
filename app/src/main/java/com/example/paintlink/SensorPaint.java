@@ -37,7 +37,7 @@ public class SensorPaint extends Activity {
 
         paintButton = findViewById(R.id.paintButton);
 
-        AlertDialog.Builder manualErrorDialog = new AlertDialog.Builder(SensorPaint.this)
+        AlertDialog.Builder recalibrationDialog = new AlertDialog.Builder(SensorPaint.this)
                 .setTitle(R.string.recalibrate_dialog_title)
                 .setPositiveButton(R.string.recalibrate_dialog_relog_button, (dialogInterface, i) -> {
                     Log.d("Activity Change", "SensorPaint -> Login [Logging]");
@@ -50,7 +50,7 @@ public class SensorPaint extends Activity {
                     finish();
                 });
 
-        findViewById(R.id.recalibrateButton).setOnClickListener(v -> manualErrorDialog.show());
+        findViewById(R.id.recalibrateButton).setOnClickListener(v -> recalibrationDialog.show());
 
         String[] requestLimitingStringOptions = getResources().getStringArray(R.array.request_limiting_options);
         Spinner requestLimitingSpinner = findViewById(R.id.requestLimitingSpinner);
